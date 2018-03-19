@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Canvas Draw</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- <link rel="stylesheet" type="text/css" media="screen" href="main.css" /> -->
+    <style>
+        body, #dropzone {
+            width: 100%;
+            height: 600px;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        #canvas1 {
+            background: transparent;
+            z-index: 100;
+        }
+        #toolbox {
+            position:absolute;
+            top: 250px;
+            clear: both;
+        }
+        input[type="file"] {
+            visibility: hidden;
+        }
+        a {
+            position: absolute;
+            right: 0;
+            top: 0 
+        }
+    </style>
+</head>
+<body>
+    <a href="#" class="button" id="btn-download" download="image.png">Download</a>
+    <div id="canvas-wrapper">
+        <canvas id="canvas" width="200" height="200"></canvas>
+        <canvas id="canvas1" width="200" height="200"></canvas>
+    </div>
+    
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // const dropContainer = document.getElementById('dropzone');
+            const dropContainer = document.body;
+            const downloadBtn = document.getElementById('btn-download');
+            console.log('DOMContentLoaded');
+            // canvas.position 
+            const canvas = document.getElementById('canvas');
+            const canvas1 = document.getElementById('canvas1');
+            const ctx = canvas.getContext("2d");
+            const ctx1 = canvas1.getContext("2d");
+
+            let startX;
+            let startY;
+            let shape = "rect";
+
+            // const inputShapes = document.querySelectorAll('input[group="shape"]');
+
+            dropContainer.addEventListener("dragenter",function(e){
+                e.stopPropagation();
+                e.preventDefault();
+                console.log('dragenter');
+            },false);
+
+            dropContainer.addEventListener("dragover",function(e){
+                e.stopPropagation();
+                e.preventDefault();
+                console.log('dragover');
+            },false);
+
+            dropContainer.addEventListener("drop",function(e){
+                e.stopPropagation();
+                e.preventDefault();
+
+                var dt = e.dataTransfer;
+                var files = dt.files;
+
+                var image = document.createElement("img");
+
+                var reader = new FileReader()
+                reader.onload = function(e){
+                    image.src = e.target.result;
+                };
+                var ret = reader.readAsDataURL(files[0]);
+                image.onload= function(){
+                    canvas.height = image.height;
+                    canvas.width = image.width;
+                    canvas1.height = image.height;
+                    canvas1.width = image.width;
+                    drawImage(ctx, image);
+                }
+            },false);
+
+            downloadBtn.addEventListener('click', () =>{
+                const dataURL = canvas.toDataURL('image/png');
+                downloadBtn.href = dataURL;
+            })
+
+            const drawRect = (context, sx, sy, ex, ey) =>{
+                context.beginPath();
+                context.fillRect(sx, sy, ex-sx, ey-sy);
+                context.stroke();
+                context.closePath();
+            }
+            const drawImage = (context, image) => {
+                ctx.drawImage(image,0,0)
+            }
+
+            const onMouseMove = (e) => {
+                console.log('mousemove :: ', e.clientX, e.clientY);
+                ctx1.clearRect(0, 0, canvas.width, canvas.height);
+                drawRect(ctx1, startX, startY, e.clientX, e.clientY);
+            }
+
+            canvas1.addEventListener('mousedown', (e) => {
+                console.log('mousedown :: ', e.clientX, e.clientY);
+                startX = e.clientX;
+                startY = e.clientY;
+                canvas1.addEventListener('mousemove', onMouseMove);
+            });
+            canvas1.addEventListener('mouseup', (e) => {
+                console.log('mouseup :: ', e.clientX, e.clientY);
+                drawRect(ctx, startX, startY, e.clientX, e.clientY);
+                ctx1.clearRect(0, 0, canvas.width, canvas.height);
+                canvas1.removeEventListener('mousemove', onMouseMove);
+            });
+
+        });
+    </script>
+</body>
+</html>
