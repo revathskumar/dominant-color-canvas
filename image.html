@@ -73,27 +73,38 @@
                 console.log('dragover');
             },false);
 
+            function loadImage(dt) {
+                if (dt) {
+                    var files = dt.files;
+
+                    if (dt.files.length >= 1) {
+                        var image = document.createElement("img");
+
+                        var reader = new FileReader()
+                        reader.onload = function(e){
+                            image.src = e.target.result;
+                        };
+                        var ret = reader.readAsDataURL(files[0]);
+                        image.onload= function(){
+                            canvas.height = image.height;
+                            canvas.width = image.width;
+                            canvas1.height = image.height;
+                            canvas1.width = image.width;
+                            drawImage(ctx, image);
+                        }
+                    }
+                }               
+            }
+
+            dropContainer.addEventListener('paste', function(e) {               
+                loadImage(e.clipboardData)
+            });
+
             dropContainer.addEventListener("drop",function(e){
                 e.stopPropagation();
                 e.preventDefault();
 
-                var dt = e.dataTransfer;
-                var files = dt.files;
-
-                var image = document.createElement("img");
-
-                var reader = new FileReader()
-                reader.onload = function(e){
-                    image.src = e.target.result;
-                };
-                var ret = reader.readAsDataURL(files[0]);
-                image.onload= function(){
-                    canvas.height = image.height;
-                    canvas.width = image.width;
-                    canvas1.height = image.height;
-                    canvas1.width = image.width;
-                    drawImage(ctx, image);
-                }
+                loadImage(e.dataTransfer)
             },false);
 
             downloadBtn.addEventListener('click', () =>{
